@@ -14,11 +14,11 @@ import * as Location from "expo-location";
 import PrevisionsDays from "./previsionsDays";
 
 function App() {
-  const [latitude, setLatitude] = useState(null);
-  const [longitude, setLongitude] = useState(null);
+  const [latitude, setLatitude] = useState();
+  const [longitude, setLongitude] = useState();
 
-  const [location, setLocation] = useState(null);
-  const [errorMsg, setErrorMsg] = useState(null);
+  const [location, setLocation] = useState();
+  const [errorMsg, setErrorMsg] = useState();
 
   const [dailyIcon, setDailyIcon] = useState();
   const [dailyWeather, setDailyWeather] = useState();
@@ -32,15 +32,16 @@ function App() {
   // };
 
   const fetchPosition = async () => {
-    let { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== "granted") {
-      setErrorMsg("Permission to access location was denied");
-      return;
-    }
+    // let { status } = await Location.requestForegroundPermissionsAsync();
+    // if (status !== "granted") {
+    //   setErrorMsg("Permission to access location was denied");
+    //   return;
+    // }
 
     let location = await Location.getCurrentPositionAsync({});
-    setLatitude(location.coords.latitude);
-    setLongitude(location.coords.longitude);
+    // console.log(location?.coords.longitude, location?.coords.latitude);
+    setLatitude(location?.coords.latitude);
+    setLongitude(location?.coords.longitude);
   };
 
   const fetchDailyWeather = async () => {
@@ -65,7 +66,9 @@ function App() {
     )
       .then((response) => response.json())
       .then((data) => {
-        setForecastWeather(data.list);
+        setForecastWeather(data.list[0]);
+
+        // console.log(data.list[0].dt_txt);
       })
       .catch((error) => {
         console.error(error);
@@ -97,7 +100,7 @@ function App() {
       {/* Forecast weather */}
       <View style={styles.viewWeek}>
         {forecastWeather.map((day, index) => (
-          <PrevisionsDays day={day} />
+          <PrevisionsDays key={day} />
         ))}
       </View>
 

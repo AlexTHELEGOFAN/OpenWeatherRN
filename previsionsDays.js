@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import PrevisionsHours from "./previsionsHours";
 
 function PrevisionsDays({ day }) {
   return (
