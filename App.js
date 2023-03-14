@@ -1,51 +1,43 @@
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
-import {
-  Button,
-  ImageBackground,
-  Modal,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import * as Location from "expo-location";
-import PrevisionsDays from "./previsionsDays";
 
 function App() {
+  // Coordonees
   const [latitude, setLatitude] = useState();
   const [longitude, setLongitude] = useState();
 
+  // Lieu
   const [location, setLocation] = useState();
   const [errorMsg, setErrorMsg] = useState();
 
+  // Meteo quotidienne
   const [dailyIcon, setDailyIcon] = useState();
   const [dailyWeather, setDailyWeather] = useState();
   const [dailyWeatherTemp, setDailyWeatherTemp] = useState();
 
-  const [forecastWeather, setForecastWeather] = useState();
+  const [weatherData, setWeatherData] = useState();
 
   const apiKey = "da5743c28b2e55726c14c95e60546a12";
-  // const image = {
-  //   uri: "https://wallpaper.dog/large/17016714.jpg",
-  // };
+  const image = {
+    uri: "https://i.pinimg.com/736x/b1/ec/43/b1ec430ab76b54a6025055f94f6d7ec9.jpg",
+  };
 
   const fetchPosition = async () => {
-    // let { status } = await Location.requestForegroundPermissionsAsync();
-    // if (status !== "granted") {
-    //   setErrorMsg("Permission to access location was denied");
-    //   return;
-    // }
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      setErrorMsg("Permission to access location was denied");
+      return;
+    }
 
     let location = await Location.getCurrentPositionAsync({});
-    // console.log(location?.coords.longitude, location?.coords.latitude);
     setLatitude(location?.coords.latitude);
     setLongitude(location?.coords.longitude);
   };
 
   const fetchDailyWeather = async () => {
-    fetch(
+    await fetch(
       `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}`
     )
       .then((response) => response.json())
@@ -61,14 +53,12 @@ function App() {
   };
 
   const fetchWeeklyWeather = async () => {
-    fetch(
+    await fetch(
       `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=${apiKey}`
     )
       .then((response) => response.json())
-      .then((data) => {
-        setForecastWeather(data.list[0]);
-
-        // console.log(data.list[0].dt_txt);
+      .then((response) => {
+        setWeatherData(response.list);
       })
       .catch((error) => {
         console.error(error);
@@ -82,29 +72,40 @@ function App() {
   }, []);
 
   return (
-    <View style={styles.container}>
-      {/* <ImageBackground
-        source={image}
-        resizeMode="cover"
-        style={styles.backgroundMainImage}
-      > */}
+    <View style={styles.viewContainer}>
       {/* Title */}
-      <Text style={styles.textTitle}>Météo à {location}</Text>
+      <Text style={styles.textTitle}>Weather at {location}</Text>
 
       {/* Current weather */}
-      <View style={styles.viewToday}>
-        <Text style={styles.textTodayTemp}>{dailyWeatherTemp}</Text>
-        <Text style={styles.textTodayDesc}>{dailyWeather}</Text>
+      <View style={styles.padding20}>
+        <Text style={styles.boldPaddingText}>Today's weather :</Text>
+        <Text style={styles.textTodayTemp}>
+          Temperature : {dailyWeatherTemp} K
+        </Text>
+        <Text style={styles.textTodayDesc}>Weather : {dailyWeather}</Text>
       </View>
 
-      {/* Forecast weather */}
-      <View style={styles.viewWeek}>
-        {forecastWeather.map((day, index) => (
-          <PrevisionsDays key={day} />
-        ))}
-      </View>
+      <Text style={styles.boldPaddingText}>Weather of the next 5 days:</Text>
 
-      {/* </ImageBackground> */}
+      {/* Weekly weather */}
+      <ScrollView>
+        {weatherData?.map((data, index) => {
+          const date = new Date(data.dt * 1000);
+          const hour = data.dt_txt.substring(11, 19);
+          const temperature = data.main.temp;
+          const weatherDescription = data.weather[0].description;
+          return (
+            <View key={index} style={styles.padding20}>
+              <Text style={styles.boldText}>
+                Date : {date.toLocaleDateString()}
+              </Text>
+              <Text>Hour : {hour}</Text>
+              <Text>Temperature : {temperature} K</Text>
+              <Text>Description : {weatherDescription}</Text>
+            </View>
+          );
+        })}
+      </ScrollView>
     </View>
   );
 }
@@ -116,6 +117,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "#05a6c3",
   },
 
   backgroundMainImage: {
@@ -139,5 +141,16 @@ const styles = StyleSheet.create({
     color: "#000000",
   },
 
-  viewWeek: {},
+  padding20: {
+    paddingBottom: 20,
+  },
+
+  boldText: {
+    fontWeight: "bold",
+  },
+
+  boldPaddingText: {
+    fontWeight: "bold",
+    paddingBottom: 20,
+  },
 });
